@@ -5,16 +5,20 @@ There was no need yet to make them configurable, but this culd be easily added.
 
 ## Usage:
 ```sh
-usage: pvoutput-reporter.py [-h] --api-key API_KEY --system-id SYSTEM_ID --prometheus-url PROMETHEUS_URL [--pvoutput-url PVOUTPUT_URL]
-                            [--ca-path CA_PATH] [--iso-timestamp ISO_TIMESTAMP] [--timezone TIMEZONE] [--debug] [--dry-run]
-pvoutput-reporter.py: error: the following arguments are required: --api-key, --system-id, --prometheus-url
+usage: pvoutput_reporter.py [-h] --mode {daily,live} --api-key API_KEY --system-id SYSTEM_ID --prometheus-url
+                            PROMETHEUS_URL [--pvoutput-url PVOUTPUT_URL] [--ca-path CA_PATH]
+                            [--iso-timestamp ISO_TIMESTAMP] [--timezone TIMEZONE] [--debug] [--dry-run]
 ```
 
 Using `--dry-run` will query your prometheus and then show what it would be submitting to pvoutput in normal mode.
 
 ## Report daily data
 
-When executing it without `--iso-timestamp`, data for "yesterday" is imported into pvoutput. The script is supposed to be invoked on a daily basis.
+When executing it with `--mode daily` and without `--iso-timestamp`, data for "yesterday" is imported into pvoutput. The script is supposed to be invoked on a daily basis.
+
+## Report live data
+
+When executing with `--mode live`, the pvoutput status API is used and live data is submitted.
 
 ## Importing old data
 
