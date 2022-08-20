@@ -7,10 +7,6 @@ from zoneinfo import ZoneInfo
 import requests
 
 
-def midnight(my_dt: datetime):
-    return my_dt.replace(hour=0, minute=0, second=0)
-
-
 class PvoutputReporter():
 
     prometheus_url: str = ''
@@ -76,8 +72,6 @@ class PvoutputReporter():
         logging.info("Successfully submitted data for %s", data["d"])
 
     def daily(self):
-
-        self.set_processing_date(midnight(datetime.now(tz=self.timezone)))
 
         data = {}
         data["d"] = self.reporting_date.strftime("%Y%m%d")
@@ -153,11 +147,14 @@ if __name__ == '__main__':
         ARGS.prometheus_url, ARGS.pvoutput_url, ARGS.api_key, ARGS.system_id, ARGS.dry_run,
         ARGS.ca_path, ZoneInfo(ARGS.timezone))
 
-    if ARGS.iso_timestamp:
-        PROCESSOR.set_reporting_date(
-            date.fromisoformat(ARGS.iso_timestamp))
-
     if ARGS.mode == 'daily':
+        if ARGS.iso_timestamp:
+            PROCESSOR.set_reporting_date(
+                date.fromisoformat(ARGS.iso_timestamp))
+        else:
+            yesterday = datetime.now(tz=PROCESSOR.timezone)-timedelta(days=1)
+            PROCESSOR.set_reporting_date(yesterday.date())
         PROCESSOR.daily()
+
     elif ARGS.mode == 'live':
         PROCESSOR.live()
