@@ -33,9 +33,6 @@ class PvoutputReporter():
         self.ca_path = ca_path
         self.timezone = timezone
 
-        self.set_processing_date(midnight(
-            datetime.now(tz=self.timezone)))
-
     def set_processing_date(self, processing_date: datetime):
         logging.debug("Set processing date to %s", processing_date.isoformat())
         self.processing_date = processing_date
@@ -64,7 +61,7 @@ class PvoutputReporter():
         logging.debug("Retrieved %f", value)
         return value
 
-    def submit(self, data):
+    def submit(self, data: dict, path: str):
         if self.dry_run:
             logging.info("Would send %s", json.dumps(data))
             return
@@ -72,13 +69,15 @@ class PvoutputReporter():
         headers = {"X-Pvoutput-Apikey": self.pvoutput_api_key,
                    "X-Pvoutput-SystemId": self.pvoutput_system_id}
         submit_response = requests.post(
-            self.pvoutput_url + "/service/r2/addoutput.jsp", data=data, headers=headers)
+            self.pvoutput_url + path, data=data, headers=headers)
         logging.debug(submit_response.text)
         submit_response.raise_for_status()
 
         logging.info("Successfully submitted data for %s", data["d"])
 
-    def run(self):
+    def daily(self):
+
+        self.set_processing_date(midnight(datetime.now(tz=self.timezone)))
 
         data = {}
         data["d"] = self.reporting_date.strftime("%Y%m%d")
@@ -95,12 +94,37 @@ class PvoutputReporter():
         data["tx"] = self.query_prometheus(
             'max_over_time(homematic_actual_temperature{device_type="WEATHER_TRANSMIT"}[1d])')
 
-        self.submit(data)
+        self.submit(data, "/service/r2/addoutput.jsp")
+
+    def live(self):
+
+        self.set_processing_date(datetime.now(tz=self.timezone))
+
+        data = {}
+        data["d"] = self.processing_date.strftime("%Y%m%d")
+        data["t"] = self.processing_date.strftime("%H:%M")
+        data["v1"] = int(self.query_prometheus(
+            'sum(rctmon_energy_solar_generator_sum)'))
+        data["v2"] = int(self.query_prometheus(
+            'sum(rctmon_generator_power_watt)'))
+        data["v3"] = int(self.query_prometheus(
+            'sum(rctmon_energy_household_sum)'))
+        data["v4"] = int(self.query_prometheus(
+            'abs(sum(rctmon_household_load))'))
+        data["v5"] = self.query_prometheus(
+            'homematic_actual_temperature{device_type="WEATHER_TRANSMIT"}')
+        data["v6"] = self.query_prometheus('avg(rctmon_grid_voltage_volt)')
+        data["c1"] = 1
+        data["n"] = 0
+
+        self.submit(data, "/service/r2/addstatus.jsp")
 
 
 if __name__ == '__main__':
 
     PARSER = argparse.ArgumentParser()
+    PARSER.add_argument("--mode", required=True, choices=['daily', 'live'],
+                        help="Report daily output data or live status data")
     PARSER.add_argument("--api-key", required=True,
                         help="API key for pvoutput.org")
     PARSER.add_argument("--system-id", required=True,
@@ -133,4 +157,7 @@ if __name__ == '__main__':
         PROCESSOR.set_reporting_date(
             date.fromisoformat(ARGS.iso_timestamp))
 
-    PROCESSOR.run()
+    if ARGS.mode == 'daily':
+        PROCESSOR.daily()
+    elif ARGS.mode == 'live':
+        PROCESSOR.live()
