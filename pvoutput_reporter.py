@@ -83,10 +83,13 @@ class PvoutputReporter():
             'max_over_time(sum(rctmon_generator_power_watt)[1d])'))
         data["c"] = int(self.query_prometheus(
             'sum(delta(rctmon_energy_household_sum[1d]))'))
-        data["tm"] = self.query_prometheus(
-            'min_over_time(homematic_actual_temperature{device_type="WEATHER_TRANSMIT"}[1d])')
-        data["tx"] = self.query_prometheus(
-            'max_over_time(homematic_actual_temperature{device_type="WEATHER_TRANSMIT"}[1d])')
+        try:
+            data["tm"] = self.query_prometheus(
+                'min_over_time(homematic_actual_temperature{device_type="WEATHER_TRANSMIT"}[1d])')
+            data["tx"] = self.query_prometheus(
+                'max_over_time(homematic_actual_temperature{device_type="WEATHER_TRANSMIT"}[1d])')
+        except Exception:
+            logging.info("Failed to retrieve temperatures, ignoring")
 
         self.submit(data, "/service/r2/addoutput.jsp")
 
@@ -105,8 +108,12 @@ class PvoutputReporter():
             'sum(rctmon_energy_household_sum)'))
         data["v4"] = int(self.query_prometheus(
             'abs(sum(rctmon_household_load))'))
-        data["v5"] = self.query_prometheus(
-            'homematic_actual_temperature{device_type="WEATHER_TRANSMIT"}')
+        try:
+            data["v5"] = self.query_prometheus(
+                'homematic_actual_temperature{device_type="WEATHER_TRANSMIT"}')
+        except Exception:
+            logging.info("Failed to retrieve temperatures, ignoring")
+
         data["v6"] = self.query_prometheus('avg(rctmon_grid_voltage_volt)')
         data["c1"] = 1
         data["n"] = 0
