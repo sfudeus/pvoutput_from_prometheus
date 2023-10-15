@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.12-slim-bookworm
 LABEL maintainer "github@mails.fudeus.net"
 
 COPY requirements.txt /tmp
