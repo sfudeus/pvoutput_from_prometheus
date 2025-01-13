@@ -1,5 +1,5 @@
 FROM docker.io/library/python:3.13.0-slim-bookworm
-LABEL maintainer "github@mails.fudeus.net"
+LABEL maintainer="github@mails.fudeus.net"
 
 COPY requirements.txt /tmp
 RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
