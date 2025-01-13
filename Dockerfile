@@ -1,4 +1,4 @@
-FROM docker.io/library/python:3.13.0-slim-bookworm
+FROM docker.io/library/python:3.13.1-slim-bookworm
 LABEL maintainer="github@mails.fudeus.net"
 
 COPY requirements.txt /tmp
