@@ -1,4 +1,4 @@
-FROM docker.io/library/python:3.14.3-slim-trixie
+FROM docker.io/library/python:3.15.0b1-slim-trixie
 LABEL maintainer="github@mails.fudeus.net"
 
 COPY requirements.txt /tmp
