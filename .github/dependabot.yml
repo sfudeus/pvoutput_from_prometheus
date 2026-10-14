@@ -8,9 +8,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "python"
-        versions: ["^\\d+\\.\\d+\\.\\d+(a|b|rc)"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
